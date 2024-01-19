@@ -3,6 +3,8 @@ const app = express();
 const port = 3000;
 const { User } = require('./models/User');
 const cookieParser = require('cookie-parser')
+const {auth} = require("./middleware/auth")
+
 // Parse JSON and URL-encoded data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -18,7 +20,7 @@ app.get('/', (req, res) => res.send('티벳여우 World!'));
 
 // 회원가입 라우터
 
-app.post('/register', (req, res) =>{
+app.post('/api/user/register', (req, res) =>{
       //회원가입 할때 필요한 정보들을 Clinent 에서 가져오면
       //그것들을 데이터베이스에 넣어준다 
   
@@ -41,7 +43,7 @@ app.post('/register', (req, res) =>{
 });
 
 
-app.post('/login', (req, res) => {
+app.post('/api/user/login', (req, res) => {
   // 1. 요청된 이메일을 데이터베이스에서 있는지 찾는다
   User.findOne({ email: req.body.email })
       .then(userInfo => {
@@ -84,5 +86,35 @@ app.post('/login', (req, res) => {
       });
   // 3. 비밀번호까지 같다면 토큰을 생성하기
 });
+
+app.get('/api/user/auth', auth,(req, res) => {
+    //여기까지 미들웨어를 통과해 왔다는 이야기는 Authentication이 True라는 말이다.
+    res.status(200).json({
+        _id: req.user._id,
+        isAdmin: req.user.role===0 ? false : true,
+        email: req.user.email,
+        name: req.user.name,
+        lastname: req.user.lastname,
+        role: req.user.role,
+        image: req.user.image
+    })
+})
+
+app.get('/api/user/logout',auth, async (req ,res)=>{
+    try{
+        const user = await User.findOneAndUpdate({_id: req.user._id},
+        {token:""})
+        if (!user) {
+            return res.json({ success: false, message: "유저를 찾을 수 없습니다." });
+        }
+
+        return res.status(200).send({
+            success: true
+        });
+    
+    }catch(error){
+        console.log(error);
+    }
+})
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
