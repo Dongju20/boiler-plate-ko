@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 5000;
 const { User } = require('./models/User');
 const cookieParser = require('cookie-parser')
 const {auth} = require("./middleware/auth")
@@ -9,7 +9,7 @@ const {auth} = require("./middleware/auth")
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-const config = require('./config/key')
+const config = require('./key')
 
 const mongoose = require('mongoose');
 mongoose.connect(config.mongoURI, {})
@@ -18,8 +18,11 @@ mongoose.connect(config.mongoURI, {})
 
 app.get('/', (req, res) => res.send('티벳여우 World!'));
 
-// 회원가입 라우터
+app.get('/api/hello', (req,res) => {
+    res.send("안녕하세요~")
+})
 
+// 회원가입 라우터
 app.post('/api/user/register', (req, res) =>{
       //회원가입 할때 필요한 정보들을 Clinent 에서 가져오면
       //그것들을 데이터베이스에 넣어준다 
